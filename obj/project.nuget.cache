@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "bs/TUSq2ibDKIpJhBd3BO1F542c7gAVnBsOG1CRkIMvWRSU9aYrJi22rObDqg/fLkFrzthioUljr8ZMaM6/4Lg==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\aliva\\Desktop\\SpotlightGPT\\SpotlightGPT\\SpotlightGPT.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\aliva\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
