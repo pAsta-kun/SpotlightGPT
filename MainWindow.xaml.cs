@@ -35,6 +35,7 @@ namespace SpotlightGPT
         private MediaPlayer mediaPlayer;
         private bool isDragging;
         private Point startPoint;
+        Process process = new Process();
         public MainWindow()
         {
             InitializeComponent();
@@ -47,22 +48,72 @@ namespace SpotlightGPT
         private void AIFunctions(String toBeDone)
         {
             //MessageBox.Show(toBeDone.Substring(5));
+            //Gets the id from AI response
+            int index = toBeDone.IndexOf("id:");
+            if (index >= 0)
+            {
+                toBeDone = toBeDone.Substring(index);
+            }
+
             int id = int.Parse(toBeDone.Substring(3, 1));
 
+            //If ID == 0 then do stuff related to volume
             if(id == 0)
             {
-                int newVolume = int.Parse(toBeDone.Substring(5));
+
+                int newVolume = int.Parse(toBeDone.Substring(5)); // Volume changes
                 CoreAudioDevice defaultPlaybackDevice = new CoreAudioController().DefaultPlaybackDevice;
+
+                //Checks to see if the user wants to add to current vol or not
                 if (toBeDone.Substring(5, 1) == "+" || toBeDone.Substring(5, 1) == "-")
                 {
                     defaultPlaybackDevice.Volume = newVolume + defaultPlaybackDevice.Volume;
+
+
                 }
                 else 
                     defaultPlaybackDevice.Volume = newVolume;
                 
             }
+            //If Id == 1 then user wants to play/pause
             if(id == 1) 
                 PlayPause();
+
+            if(id == 2)
+            {
+                string command = toBeDone.Substring(5);
+                //Sets up command line
+                cmdLineSetUp();
+                // Send the command to the command line
+                process.StandardInput.WriteLine(command);
+
+                // Close the command line
+                process.StandardInput.WriteLine("exit");
+                process.WaitForExit();
+            }
+
+            //Sets up command line
+            cmdLineSetUp();
+            // Send the command to the command line
+            process.StandardInput.WriteLine("mkdir test");
+
+            // Close the command line
+            process.StandardInput.WriteLine("exit");
+            process.WaitForExit();
+
+        }
+
+        private void cmdLineSetUp()
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.FileName = "cmd.exe";
+            startInfo.RedirectStandardInput = true;
+            startInfo.UseShellExecute = false;
+            startInfo.WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+            // Start the process
+            process.StartInfo = startInfo;
+            process.Start();
         }
 
         // Virtual key codes for media control
