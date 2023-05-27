@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Media;
+using AudioSwitcher.AudioApi.CoreAudio;
+using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,14 +32,54 @@ namespace SpotlightGPT
     public partial class MainWindow : Window
     {
         private readonly HttpClient client;
+        private MediaPlayer mediaPlayer;
         private bool isDragging;
         private Point startPoint;
         public MainWindow()
         {
             InitializeComponent();
             client = new HttpClient();
-
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            InitializeComponent();
+            //InitializeMediaPlayer();
+        }
+
+        private void AIFunctions(String toBeDone)
+        {
+            //MessageBox.Show(toBeDone.Substring(5));
+            int id = int.Parse(toBeDone.Substring(3, 1));
+
+            if(id == 0)
+            {
+                int newVolume = int.Parse(toBeDone.Substring(5));
+                CoreAudioDevice defaultPlaybackDevice = new CoreAudioController().DefaultPlaybackDevice;
+                if (toBeDone.Substring(5, 1) == "+" || toBeDone.Substring(5, 1) == "-")
+                {
+                    defaultPlaybackDevice.Volume = newVolume + defaultPlaybackDevice.Volume;
+                }
+                else 
+                    defaultPlaybackDevice.Volume = newVolume;
+                
+            }
+            if(id == 1) 
+                PlayPause();
+        }
+
+        // Virtual key codes for media control
+        private const int VK_MEDIA_PLAY_PAUSE = 0xB3;
+
+        // Key event constants
+        private const int KEYEVENTF_EXTENDEDKEY = 0x0001;
+        private const int KEYEVENTF_KEYUP = 0x0002;
+
+        // Import the user32.dll library
+        [DllImport("user32.dll")]
+        private static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
+
+        public static void PlayPause()
+        {
+            keybd_event(VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY, 0);
+            keybd_event(VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
         }
 
         private void TextBox_KeyDown(object sender, KeyEventArgs e)
@@ -43,9 +87,9 @@ namespace SpotlightGPT
             TextBox textBox = (TextBox)sender;
             if (e.Key == Key.Enter && !string.IsNullOrWhiteSpace(textBox.Text))
             {
-
-                MessageBox.Show(textBox.Text);
+                //MessageBox.Show(textBox.Text);
                 GetAIResponse(textBox.Text);
+                textBox.Text = string.Empty;
             }
         }
 
@@ -94,18 +138,19 @@ namespace SpotlightGPT
                 var json = "{\"message\":\"" + prompt + "\"}";
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                MessageBox.Show("working");
+                //MessageBox.Show("working");
 
-                HttpResponseMessage response = await client.PostAsync("https://chatap-3obp.onrender.com/", content);
+                HttpResponseMessage response = await client.PostAsync("http://localhost:5000/", content);
                 response.EnsureSuccessStatusCode();
 
-                MessageBox.Show("working");
+                //MessageBox.Show("working");
 
                 string responseContent = await response.Content.ReadAsStringAsync();
                 AIResponse aiResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<AIResponse>(responseContent);
 
                 string botResponse = aiResponse.bot.Trim();
                 MessageBox.Show(botResponse);
+                AIFunctions(botResponse);
             }
             catch (Exception error)
             {
